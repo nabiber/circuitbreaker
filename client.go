@@ -108,6 +108,8 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 func (c *HTTPClient) DoWithCancel(ctx context.Context, req *http.Request) (*http.Response, error) {
 	var resp *http.Response
 	var err error
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 	breaker := c.breakerLookup(req.URL.String())
 	err = breaker.Call(func() error {
 		resp, err = ctxhttp.Do(ctx, c.Client, req)
@@ -128,36 +130,12 @@ func (c *HTTPClient) Get(url string) (*http.Response, error) {
 	return resp, err
 }
 
-// GetWithCancel wraps http.Client GetWithCancel()
-func (c *HTTPClient) GetWithCancel(ctx context.Context, url string) (*http.Response, error) {
-	var resp *http.Response
-	breaker := c.breakerLookup(url)
-	err := breaker.Call(func() error {
-		aresp, err := ctxhttp.Get(ctx, c.Client, url)
-		resp = aresp
-		return err
-	}, c.timeout)
-	return resp, err
-}
-
 // Head wraps http.Client Head()
 func (c *HTTPClient) Head(url string) (*http.Response, error) {
 	var resp *http.Response
 	breaker := c.breakerLookup(url)
 	err := breaker.Call(func() error {
 		aresp, err := c.Client.Head(url)
-		resp = aresp
-		return err
-	}, c.timeout)
-	return resp, err
-}
-
-// HeadWithCancel wraps http.Client HeadWithCancel()
-func (c *HTTPClient) HeadWithCancel(ctx context.Context, url string) (*http.Response, error) {
-	var resp *http.Response
-	breaker := c.breakerLookup(url)
-	err := breaker.Call(func() error {
-		aresp, err := ctxhttp.Head(ctx, c.Client, url)
 		resp = aresp
 		return err
 	}, c.timeout)
@@ -176,36 +154,12 @@ func (c *HTTPClient) Post(url string, bodyType string, body io.Reader) (*http.Re
 	return resp, err
 }
 
-// PostWithCancel wraps http.Client PostWithCancel()
-func (c *HTTPClient) PostWithCancel(ctx context.Context, url string, bodyType string, body io.Reader) (*http.Response, error) {
-	var resp *http.Response
-	breaker := c.breakerLookup(url)
-	err := breaker.Call(func() error {
-		aresp, err := ctxhttp.Post(ctx, c.Client, url, bodyType, body)
-		resp = aresp
-		return err
-	}, c.timeout)
-	return resp, err
-}
-
 // PostForm wraps http.Client PostForm()
 func (c *HTTPClient) PostForm(url string, data url.Values) (*http.Response, error) {
 	var resp *http.Response
 	breaker := c.breakerLookup(url)
 	err := breaker.Call(func() error {
 		aresp, err := c.Client.PostForm(url, data)
-		resp = aresp
-		return err
-	}, c.timeout)
-	return resp, err
-}
-
-// PostFormWithCancel wraps http.Client PostFormWithCancel()
-func (c *HTTPClient) PostFormWithCancel(ctx context.Context, url string, data url.Values) (*http.Response, error) {
-	var resp *http.Response
-	breaker := c.breakerLookup(url)
-	err := breaker.Call(func() error {
-		aresp, err := ctxhttp.PostForm(ctx, c.Client, url, data)
 		resp = aresp
 		return err
 	}, c.timeout)
